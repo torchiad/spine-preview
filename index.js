@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Pixi Spine Previewer</title>
+  <title>🦴 Pixi Spine Previewer</title>
   <script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.9/dist/browser/pixi.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/pixi-spine@3.1.2/dist/pixi-spine.js"></script>
   <style>
@@ -11,32 +11,77 @@
       color: white;
       margin: 0;
       height: 100%;
-      font-family: system-ui;
+      font-family: system-ui, sans-serif;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
-    #controls {
-      padding: 1rem;
-      display: flex;
-      gap: 1rem;
-      align-items: center;
+
+    h2 {
+      margin: 1rem 0 0.5rem;
     }
-    canvas { background: #222; border-radius: 8px; }
+
+    #controls {
+      display: flex;
+      gap: 0.75rem;
+      padding: 1rem;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    input[type="file"] {
+      color: white;
+      background: #333;
+      border: 1px solid #555;
+      border-radius: 4px;
+      padding: 0.25rem 0.5rem;
+    }
+
+    select, button {
+      background: #333;
+      color: white;
+      border: 1px solid #555;
+      border-radius: 4px;
+      padding: 0.4rem 0.6rem;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #444;
+    }
+
+    #canvas-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      max-width: 900px;
+    }
+
+    canvas {
+      background: #222;
+      border-radius: 8px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
   </style>
 </head>
 <body>
   <h2>🦴 Pixi Spine Previewer</h2>
+
   <div id="controls">
     <input type="file" id="fileInput" multiple />
     <select id="animationSelect"></select>
     <button id="playBtn">▶️ Play</button>
   </div>
+
   <div id="canvas-container"></div>
 
   <script>
     let app, spine, resources = {};
 
+    // Create Pixi app
     app = new PIXI.Application({
       backgroundColor: 0x111111,
       width: 800,
@@ -63,11 +108,13 @@
       const jsonText = await jsonFile.text();
       const atlasText = await atlasFile.text();
 
+      // Load bitmaps for all PNGs
       const atlasImages = {};
       for (let [name, file] of Object.entries(imageFiles)) {
         atlasImages[name] = await createImageBitmap(await file.arrayBuffer());
       }
 
+      // Create atlas
       const rawAtlas = new PIXI.spine.core.TextureAtlas(atlasText, (line, cb) => {
         const bmp = atlasImages[line];
         if (!bmp) return console.warn("Missing image", line);
@@ -86,7 +133,7 @@
       app.stage.removeChildren();
       app.stage.addChild(spine);
 
-      // populate animation list
+      // Populate animation dropdown
       animSelect.innerHTML = "";
       for (const anim of spine.spineData.animations) {
         const opt = document.createElement("option");
