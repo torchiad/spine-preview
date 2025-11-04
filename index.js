@@ -3,126 +3,126 @@
 <head>
   <meta charset="UTF-8" />
   <title>🦴 Pixi Spine Previewer</title>
+
+  <!-- PIXI + SPINE -->
   <script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.9/dist/browser/pixi.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/pixi-spine@3.1.2/dist/pixi-spine.js"></script>
+
+  <link rel="stylesheet" href="https://torchiad.github.io/sprite-splitter/style.css" />
+
   <style>
-    html, body {
-      background: #1b1b1b;
-      color: white;
-      margin: 0;
-      height: 100%;
-      font-family: system-ui, sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    h2 {
-      margin: 1rem 0 0.5rem;
-    }
-
-    #controls {
-      display: flex;
-      gap: 0.75rem;
-      padding: 1rem;
-      align-items: center;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    input[type="file"] {
-      color: white;
-      background: #333;
-      border: 1px solid #555;
-      border-radius: 4px;
-      padding: 0.25rem 0.5rem;
-    }
-
-    select, button {
-      background: #333;
-      color: white;
-      border: 1px solid #555;
-      border-radius: 4px;
-      padding: 0.4rem 0.6rem;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #444;
-    }
-
+    /* extra tweaks for the canvas */
     #canvas-container {
-      flex: 1;
       display: flex;
       justify-content: center;
       align-items: center;
-      width: 100%;
-      max-width: 900px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 1rem;
+      box-shadow: var(--shadow);
+      height: 600px;
+      overflow: hidden;
     }
-
     canvas {
-      background: #222;
-      border-radius: 8px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
   </style>
 </head>
 <body>
-  <h2>🦴 Pixi Spine Previewer</h2>
 
-  <div id="controls">
-    <input type="file" id="fileInput" multiple />
-    <select id="animationSelect"></select>
-    <button id="playBtn">▶️ Play</button>
+  <div class="container">
+    <header class="header">
+      <h1 class="title">Pixi Spine Previewer <span class="scissors-icon">🦴</span></h1>
+      <p class="subtitle">Load your <strong>.json</strong>, <strong>.atlas</strong>, and <strong>.png</strong> files to preview and test animations.</p>
+    </header>
+
+    <div class="card">
+      <div class="upload-area" id="uploadArea">
+        <div class="upload-icon">📂</div>
+        <div class="upload-text">Drop your Spine export files here</div>
+        <div class="upload-hint">.json + .atlas + textures (.png)</div>
+        <input type="file" id="fileInput" class="file-input" multiple />
+      </div>
+
+      <div class="file-status" id="fileStatus">
+        <div class="file-info">✅ Files loaded successfully</div>
+        <div class="json-info" id="jsonInfo"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="buttons">
+        <select id="animationSelect" class="btn btn-secondary"></select>
+        <button id="playBtn" class="btn btn-primary">▶ Play</button>
+        <button id="clearBtn" class="btn btn-clear">Clear</button>
+      </div>
+      <div id="canvas-container"></div>
+    </div>
+
+    <div class="version">PixiJS 6.5.9 • pixi-spine 3.1.2</div>
   </div>
 
-  <div id="canvas-container"></div>
-
   <script>
-    let app, spine, resources = {};
-
-    // Create Pixi app
-    app = new PIXI.Application({
-      backgroundColor: 0x111111,
-      width: 800,
-      height: 600,
-    });
-    document.getElementById("canvas-container").appendChild(app.view);
-
+    let app, spine, jsonFile, atlasFile, imageFiles = {};
     const input = document.getElementById("fileInput");
     const animSelect = document.getElementById("animationSelect");
     const playBtn = document.getElementById("playBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const uploadArea = document.getElementById("uploadArea");
+    const fileStatus = document.getElementById("fileStatus");
+    const jsonInfo = document.getElementById("jsonInfo");
 
-    let jsonFile, atlasFile, imageFiles = {};
+    // Setup PIXI app
+    app = new PIXI.Application({ backgroundAlpha: 0, width: 800, height: 600 });
+    document.getElementById("canvas-container").appendChild(app.view);
 
-    input.addEventListener("change", (e) => {
-      for (let f of e.target.files) {
+    uploadArea.addEventListener("dragover", e => {
+      e.preventDefault();
+      uploadArea.classList.add("dragover");
+    });
+    uploadArea.addEventListener("dragleave", () => uploadArea.classList.remove("dragover"));
+    uploadArea.addEventListener("drop", e => {
+      e.preventDefault();
+      uploadArea.classList.remove("dragover");
+      handleFiles(e.dataTransfer.files);
+    });
+    input.addEventListener("change", e => handleFiles(e.target.files));
+    clearBtn.addEventListener("click", reset);
+
+    function handleFiles(files) {
+      for (let f of files) {
         if (f.name.endsWith(".json")) jsonFile = f;
         else if (f.name.endsWith(".atlas")) atlasFile = f;
         else if (f.name.endsWith(".png")) imageFiles[f.name] = f;
       }
       if (jsonFile && atlasFile && Object.keys(imageFiles).length) loadSpine();
-    });
+    }
 
     async function loadSpine() {
+      uploadArea.classList.add("has-file");
+      fileStatus.classList.add("show");
+      jsonInfo.innerHTML = `<h4>Loaded Files</h4>
+        <div class="json-detail"><span>JSON:</span><span>${jsonFile.name}</span></div>
+        <div class="json-detail"><span>Atlas:</span><span>${atlasFile.name}</span></div>
+        <div class="json-detail"><span>Images:</span><span>${Object.keys(imageFiles).join(", ")}</span></div>`;
+
       const jsonText = await jsonFile.text();
       const atlasText = await atlasFile.text();
 
-      // Load bitmaps for all PNGs
       const atlasImages = {};
       for (let [name, file] of Object.entries(imageFiles)) {
         atlasImages[name] = await createImageBitmap(await file.arrayBuffer());
       }
 
-      // Create atlas
-      const rawAtlas = new PIXI.spine.core.TextureAtlas(atlasText, (line, cb) => {
+      const atlas = new PIXI.spine.core.TextureAtlas(atlasText, (line, cb) => {
         const bmp = atlasImages[line];
         if (!bmp) return console.warn("Missing image", line);
-        const baseTex = new PIXI.BaseTexture(bmp);
-        cb(new PIXI.spine.core.Texture(baseTex));
+        cb(new PIXI.spine.core.Texture(new PIXI.BaseTexture(bmp)));
       });
 
-      const atlasLoader = new PIXI.spine.core.AtlasAttachmentLoader(rawAtlas);
+      const atlasLoader = new PIXI.spine.core.AtlasAttachmentLoader(atlas);
       const jsonLoader = new PIXI.spine.core.SkeletonJson(atlasLoader);
       const skeletonData = jsonLoader.readSkeletonData(JSON.parse(jsonText));
 
@@ -130,10 +130,10 @@
       spine.x = app.screen.width / 2;
       spine.y = app.screen.height - 100;
       spine.scale.set(0.5);
+
       app.stage.removeChildren();
       app.stage.addChild(spine);
 
-      // Populate animation dropdown
       animSelect.innerHTML = "";
       for (const anim of spine.spineData.animations) {
         const opt = document.createElement("option");
@@ -145,9 +145,18 @@
 
     playBtn.addEventListener("click", () => {
       if (!spine) return;
-      const anim = animSelect.value;
-      spine.state.setAnimation(0, anim, true);
+      spine.state.setAnimation(0, animSelect.value, true);
     });
+
+    function reset() {
+      jsonFile = atlasFile = spine = null;
+      imageFiles = {};
+      animSelect.innerHTML = "";
+      app.stage.removeChildren();
+      uploadArea.classList.remove("has-file");
+      fileStatus.classList.remove("show");
+      jsonInfo.innerHTML = "";
+    }
   </script>
 </body>
 </html>
