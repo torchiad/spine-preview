@@ -108,7 +108,9 @@
         else if (f.name.endsWith(".png")) imageFiles[f.name] = f;
       }
       if (jsonFile && atlasFile && Object.keys(imageFiles).length) loadSpine();
-    } async function loadSpine() {
+    }
+
+    async function loadSpine() {
       uploadArea.classList.add("has-file");
       fileStatus.classList.add("show");
       jsonInfo.innerHTML = `
@@ -121,13 +123,14 @@
       const jsonText = await jsonFile.text();
       const atlasText = await atlasFile.text();
 
-      // Load image bitmaps
+      // Load image bitmaps into BaseTextures
       const atlasImages = {};
       for (let [name, file] of Object.entries(imageFiles)) {
         const blob = new Blob([await file.arrayBuffer()]);
         atlasImages[name] = await createImageBitmap(blob);
       }
 
+      // Use the flattened API (no .core)
       const textureAtlas = new PIXI.spine.TextureAtlas(atlasText, (line, cb) => {
         const bmp = atlasImages[line];
         if (!bmp) {
@@ -135,13 +138,15 @@
           return cb(null);
         }
         const baseTex = new PIXI.BaseTexture(bmp);
-        cb(new PIXI.spine.Texture(baseTex));
+        const texture = new PIXI.Texture(baseTex);
+        cb(texture);
       });
 
       const atlasLoader = new PIXI.spine.AtlasAttachmentLoader(textureAtlas);
       const jsonLoader = new PIXI.spine.SkeletonJson(atlasLoader);
       const skeletonData = jsonLoader.readSkeletonData(JSON.parse(jsonText));
 
+      // Create the Spine display object
       spine = new PIXI.spine.Spine(skeletonData);
       spine.x = app.screen.width / 2;
       spine.y = app.screen.height - 100;
@@ -150,6 +155,7 @@
       app.stage.removeChildren();
       app.stage.addChild(spine);
 
+      // Populate animations dropdown
       animSelect.innerHTML = "";
       for (const anim of spine.spineData.animations) {
         const opt = document.createElement("option");
