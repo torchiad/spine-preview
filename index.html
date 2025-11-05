@@ -2,71 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>🦴 Pixi Spine Previewer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <style>
-      body {
-        margin: 0;
-        background: #0a0a0a;
-        color: white;
-        font-family: system-ui, sans-serif;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-        min-height: 100vh;
-      }
-      header {
-        text-align: center;
-        margin-top: 1rem;
-      }
-      #canvas-container {
-        width: 800px;
-        height: 600px;
-        border: 1px solid #333;
-        border-radius: 0.5rem;
-        background: #111;
-      }
-      select,
-      button {
-        font-size: 1rem;
-        margin: 0.25rem;
-        padding: 0.4rem 1rem;
-      }
-      #uploadArea {
-        border: 2px dashed #444;
-        border-radius: 0.5rem;
-        width: 800px;
-        height: 120px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: #aaa;
-      }
-      #uploadArea.dragover {
-        border-color: #4facfe;
-        color: #4facfe;
-      }
-    </style>
-    <script type="module" crossorigin src="./assets/index-B8gO7ylS.js"></script>
+    <title>Pixi Tools Suite</title>
+    <script type="module" crossorigin src="./assets/index-BdDT8HbR.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-CUw51Z87.css">
   </head>
-
   <body>
-    <header>
-      <h1>Pixi Spine Previewer 🦴</h1>
-      <p>Drop your <b>.json</b>, <b>.atlas</b>, and <b>.png</b> files</p>
-    </header>
-
-    <div id="uploadArea">Drop files or click to select<input id="fileInput" type="file" multiple style="display:none" /></div>
-
-    <div>
-      <select id="animationSelect"></select>
-      <button id="playBtn">▶ Play</button>
-      <button id="clearBtn">Clear</button>
-    </div>
-
-    <div id="canvas-container"></div>
-
+    <div id="app"></div>
   </body>
 </html>
