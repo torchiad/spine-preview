@@ -125,18 +125,18 @@
       }
 
       // Note: PIXI.spine.core classes are available due to the correct import
-      const atlas = new PIXI.spine.core.TextureAtlas(atlasText, (line, cb) => {
+      const atlas = new PIXI.spine.TextureAtlas(atlasText, (line, cb) => {
         const bmp = atlasImages[line];
         if (!bmp) {
           console.warn("Missing image", line);
           return cb(null);
         }
         const baseTex = new PIXI.BaseTexture(bmp);
-        cb(new PIXI.spine.core.Texture(baseTex));
+        cb(new PIXI.spine.Texture(baseTex));
       });
 
-      const atlasLoader = new PIXI.spine.core.AtlasAttachmentLoader(atlas);
-      const jsonLoader = new PIXI.spine.core.SkeletonJson(atlasLoader);
+      const atlasLoader = new PIXI.spine.AtlasAttachmentLoader(atlas);
+      const jsonLoader = new PIXI.spine.SkeletonJson(atlasLoader);
       const skeletonData = jsonLoader.readSkeletonData(JSON.parse(jsonText));
 
       // This PIXI.spine.Spine class is now correctly defined
