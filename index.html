@@ -5,7 +5,8 @@
   <title>🦴 Pixi Spine Previewer</title>
 
   <script src="https://cdn.jsdelivr.net/npm/pixi.js@6.5.9/dist/browser/pixi.min.js"></script>
- <script src="https://cdn.jsdelivr.net/npm/@pixi-spine/runtime-3.8@3.1.2/lib/runtime-3.8.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@pixi-spine/all-3.8@3.1.2/dist/pixi-spine.umd.js"></script>
+  
   <link rel="stylesheet" href="https://torchiad.github.io/sprite-splitter/style.css" />
 
   <style>
@@ -36,7 +37,6 @@
       </p>
     </header>
 
-    <!-- Upload Panel -->
     <div class="card">
       <div class="upload-area" id="uploadArea">
         <div class="upload-icon">📂</div>
@@ -51,7 +51,6 @@
       </div>
     </div>
 
-    <!-- Player Panel -->
     <div class="card">
       <div class="buttons">
         <select id="animationSelect" class="btn btn-secondary"></select>
@@ -120,6 +119,7 @@
         atlasImages[name] = await createImageBitmap(blob);
       }
 
+      // Note: PIXI.spine.core classes are available due to the correct import
       const atlas = new PIXI.spine.core.TextureAtlas(atlasText, (line, cb) => {
         const bmp = atlasImages[line];
         if (!bmp) {
@@ -134,6 +134,7 @@
       const jsonLoader = new PIXI.spine.core.SkeletonJson(atlasLoader);
       const skeletonData = jsonLoader.readSkeletonData(JSON.parse(jsonText));
 
+      // This PIXI.spine.Spine class is now correctly defined
       spine = new PIXI.spine.Spine(skeletonData);
       spine.x = app.screen.width / 2;
       spine.y = app.screen.height - 100;
